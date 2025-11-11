@@ -7,7 +7,7 @@ import {
   type DragStartEvent,
   PointerSensor,
   type UniqueIdentifier,
-  closestCorners,
+  closestCenter,
   useSensor,
   useSensors,
   useDroppable,
@@ -16,7 +16,7 @@ import {
 import {
   SortableContext,
   useSortable,
-  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
   arrayMove
 } from '@dnd-kit/sortable'
 
@@ -33,38 +33,38 @@ interface Container {
   items: Item[]
 }
 
-function DroppableContainer(
-  { id, title, items,}: { id: string; title: string; items: Item[]}
-) {
+function DroppableContainer({ id, title, items, index}: { id: string; title: string; items: Item[]; index: number}) {
   const { setNodeRef } = useDroppable({ id })
 
   return (
     <div
       ref={setNodeRef}
-      className="flex h-full min-h-40 flex-col rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50"
+      className={`flex h-full ${index === 0 ? 'min-h-150' :'min-h-30'} flex-col rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50 `}
     >
       <h3 className="mb-2 font-medium text-gray-700 dark:text-gray-200">
         {title}
       </h3>
-      <div className="flex-1">
-      <SortableContext
-        items={items.map((item) => item.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <ul className="flex flex-col gap-2">
-          {items.map((item) => (
-            <SortableItem key={item.id} id={item.id} content={item.content}/>
-          ))}
-        </ul>
-      </SortableContext>
+      
+      <div className="flex-1 bg-green-300/0">
+        <SortableContext
+          items={items.map((item) => item.id)}
+          strategy={horizontalListSortingStrategy}
+        >
+          <ul className="flex flex-row gap-2">
+            {items.map((item) => (
+              <SortableItem key={item.id} id={item.id} content={item.content}/>
+            ))}
 
-        {items.length === 0 && (
-          <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/30">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Drop items here
-            </p>
-          </div>
-        )}
+
+          {items.length === 0 && (
+            <div className="flex w-full min-h-20 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/30">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Drop items here
+              </p>
+            </div>
+          )}
+          </ul>
+        </SortableContext>
       </div>
     </div>
   )
@@ -125,10 +125,9 @@ export default function BasicDragDrop() {
         { id: 'task-2', content: 'item2' },
         { id: 'task-3', content: 'item3' },
         { id: 'task-4', content: 'item4' },
-        { id: 'task-5', content: 'item5' },
       ],
     },
-        {
+    {
       id: 'innerItems',
       title: 'innerItems',
       items: [
@@ -136,6 +135,14 @@ export default function BasicDragDrop() {
         { id: 'task-7', content: 'item7' },
       ],
     },
+    // {
+    //   id: 'YinnerItems',
+    //   title: 'YinnerItems',
+    //   items: [
+    //     { id: 'task-8', content: 'item8' },
+    //     { id: 'task-9', content: 'item9' },
+    //   ],
+    // },
   ])
   void setContainers
   
@@ -172,6 +179,7 @@ export default function BasicDragDrop() {
       const newContainer = prev.map((container) => {
         if(container.id === activeContainerId) {
           //remove item from its old container
+          
           return {
             ...container,
             items: container.items.filter((item) => item.id !== activeId)
@@ -201,6 +209,7 @@ export default function BasicDragDrop() {
         }
         return container
       })
+      console.log("moved container (newContainer): ",newContainer);
       return newContainer
     })
 
@@ -253,28 +262,30 @@ export default function BasicDragDrop() {
   const sensors = useSensors(
     useSensor(PointerSensor,
       {activationConstraint: {
-        distance: 8 //8px of movement required
+        distance: 2 //8px of movement required
       },
+      
     })
   )
 
     return (
-    <div className="mx-auto w-full">
+    <div className="mx-auto w-full bg-red-400">
       <h2 className="mb-4 text-xl font-bold dark:text-white">Kanban Board</h2>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-      <div className="grid gap-4 md:grid-cols-3">
-        {containers.map((container) => (
+      <div className="grid gap-4 md:grid-cols-1">
+        {containers.map((container,index) => (
           <DroppableContainer
             key={container.id}
             id={container.id}
             title={container.title}
             items={container.items}
+            index={index}
           />
         ))}
       </div>

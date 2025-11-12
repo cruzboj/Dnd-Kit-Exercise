@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import React , { useState, type ReactNode } from 'react'
 
 import { 
   DndContext,
@@ -24,7 +24,7 @@ import {CSS} from '@dnd-kit/utilities'
 
 interface Item {
   id: string
-  content: string
+  content: ReactNode
 }
 
 interface Container {
@@ -39,7 +39,7 @@ function DroppableContainer({ id, title, items, index}: { id: string; title: str
   return (
     <div
       ref={setNodeRef}
-      className={`flex h-full ${index === 0 ? 'min-h-150' :'min-h-30'} flex-col rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50 `}
+      className={`flex h-full ${index === 0 ? 'min-h-150' :'min-h-30'} flex-col rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-red-800/50 `}
     >
       <h3 className="mb-2 font-medium text-gray-700 dark:text-gray-200">
         {title}
@@ -52,7 +52,7 @@ function DroppableContainer({ id, title, items, index}: { id: string; title: str
         >
           <ul className="flex flex-row gap-2">
             {items.map((item) => (
-              <SortableItem key={item.id} id={item.id} content={item.content}/>
+              <SortableItem key={item.id} id={item.id} content={item.content} index={index}/>
             ))}
 
 
@@ -70,7 +70,7 @@ function DroppableContainer({ id, title, items, index}: { id: string; title: str
   )
 }
 
-function SortableItem({id,content}: {id: UniqueIdentifier , content: string}){
+function SortableItem({id,content,index}: {id: UniqueIdentifier , content: ReactNode , index: number}){
   const {
       attributes,
       listeners,
@@ -80,10 +80,15 @@ function SortableItem({id,content}: {id: UniqueIdentifier , content: string}){
       isDragging
   } = useSortable({id})
   
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
+const style = {
+  transform: CSS.Transform.toString({
+    x: transform?.x ?? 0,
+    y: transform?.y ?? 0,
+    scaleX: 1,
+    scaleY: 1,
+  }),
+  transition,
+};
 
   return (
     <li
@@ -93,54 +98,58 @@ function SortableItem({id,content}: {id: UniqueIdentifier , content: string}){
       {...listeners}
       className={
         `cursor-grab
-         toutch-none 
-         rounded 
-         border 
-         bg-white 
-         p-3 
-         dark:border-gray-700 
-         dark:bg-gray-700 
-         ${isDragging ? 'z-10 opacity-50' : ''}
+        toutch-none 
+        rounded 
+        border 
+        bg-white 
+        p-3 
+        dark:border-gray-700 
+        dark:bg-green-500
+        ${isDragging ? 'z-10 opacity-50' : ''}
+
       `}
     >
       <div className="flex items-center gap-3">
-        <span className="text-gray-500 dark:text-gray-400">
-          ⋮⋮
-        </span>
         <span className="dark:text-gray-200">{content}</span>
       </div>
     </li>
   )
 }
 
-export default function BasicDragDrop() {
+export default function BasicDragDrop({children}: { children: React.ReactNode } ) {
+  const childrenArray = React.Children.toArray(children);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   void activeId; //remove the active id warning
   const [containers, setContainers] = useState<Container[]>([
     {
-      id: 'outerItems',
-      title: 'outerItems',
-      items: [
-        { id: 'task-1', content: 'item1' },
-        { id: 'task-2', content: 'item2' },
-        { id: 'task-3', content: 'item3' },
-        { id: 'task-4', content: 'item4' },
-      ],
+      id: 'OuterItems',
+      title: 'OuterItems',
+      items: childrenArray.map((child, index) => ({
+        id: `${index + 1}`,
+        content: child,
+      })),
     },
     {
       id: 'innerItems',
       title: 'innerItems',
-      items: [
-        { id: 'task-6', content: 'item6' },
-        { id: 'task-7', content: 'item7' },
-      ],
-    },
+      items: [],      
+    }
     // {
-    //   id: 'YinnerItems',
-    //   title: 'YinnerItems',
+    //   id: 'outerItems',
+    //   title: 'outerItems',
     //   items: [
-    //     { id: 'task-8', content: 'item8' },
-    //     { id: 'task-9', content: 'item9' },
+    //     { id: 'task-1', content: 'item1' },
+    //     { id: 'task-2', content: 'item2' },
+    //     { id: 'task-3', content: 'item3' },
+    //     { id: 'task-4', content: 'item4' },
+    //   ],
+    // },
+    // {
+    //   id: 'innerItems',
+    //   title: 'innerItems',
+    //   items: [
+    //     { id: 'task-6', content: 'item6' },
+    //     { id: 'task-7', content: 'item7' },
     //   ],
     // },
   ])
@@ -269,7 +278,7 @@ export default function BasicDragDrop() {
   )
 
     return (
-    <div className="mx-auto w-full bg-red-400">
+    <div className="mx-auto w-full bg-red-400/0">
       <h2 className="mb-4 text-xl font-bold dark:text-white">Kanban Board</h2>
       <DndContext
         sensors={sensors}

@@ -39,30 +39,30 @@ function DroppableContainer({ id, title, items, index}: { id: string; title: str
   return (
     <div
       ref={setNodeRef}
-      className={`flex h-full ${index === 0 ? 'min-h-150' :'min-h-30'} flex-col rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-red-800/50 `}
+      className={`relative flex ${index === 0 ? 'h-[80%]' : 'h-[20%]'} flex-col rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 bg-red-800 `}
     >
       <h3 className="mb-2 font-medium text-gray-700 dark:text-gray-200">
         {title}
       </h3>
       
-      <div className="flex-1 bg-green-300/0">
+      <div className="h-full flex-1 bg-green-300/0">
         <SortableContext
           items={items.map((item) => item.id)}
           strategy={horizontalListSortingStrategy}
         >
-          <ul className="flex flex-row gap-2">
+          <ul className="relative h-full flex flex-row gap-2 bg-blue-500 m-0 p-0 list-none">
             {items.map((item) => (
               <SortableItem key={item.id} id={item.id} content={item.content} index={index}/>
             ))}
 
 
-          {items.length === 0 && (
-            <div className="flex w-full min-h-20 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/30">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Drop items here
-              </p>
-            </div>
-          )}
+            {items.length === 0 && (
+              <div className="flex w-full h-full items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/30">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Drop items here
+                </p>
+              </div>
+            )}
           </ul>
         </SortableContext>
       </div>
@@ -80,14 +80,18 @@ function SortableItem({id,content,index}: {id: UniqueIdentifier , content: React
       isDragging
   } = useSortable({id})
   
+  // If index is 1 (innerItems), apply smaller scale
+  // const isInnerContainer = index === 1;
+  
 const style = {
-  transform: CSS.Transform.toString({
+  transform: CSS.Transform.toString({ 
     x: transform?.x ?? 0,
-    y: transform?.y ?? 0,
-    scaleX: 1,
-    scaleY: 1,
+    y: transform?.y ?? 0, 
+    scaleX: 1, 
+    scaleY: 1, 
   }),
-  transition,
+
+  transition,                           
 };
 
   return (
@@ -105,8 +109,7 @@ const style = {
         p-3 
         dark:border-gray-700 
         dark:bg-green-500
-        ${isDragging ? 'z-10 opacity-50' : ''}
-
+        ${isDragging ? 'z-10 opacity-85 ' : ''}
       `}
     >
       <div className="flex items-center gap-3">
@@ -218,7 +221,7 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
         }
         return container
       })
-      console.log("moved container (newContainer): ",newContainer);
+      // console.log("moved container (newContainer): ",newContainer);
       return newContainer
     })
 
@@ -278,8 +281,7 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
   )
 
     return (
-    <div className="mx-auto w-full bg-red-400/0">
-      <h2 className="mb-4 text-xl font-bold dark:text-white">Kanban Board</h2>
+    <div className="mx-auto w-full h-full bg-red-400/0">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -287,7 +289,7 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-      <div className="grid gap-4 md:grid-cols-1">
+      <div className="flex flex-col gap-4 h-full">
         {containers.map((container,index) => (
           <DroppableContainer
             key={container.id}

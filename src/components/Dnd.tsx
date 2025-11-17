@@ -5,12 +5,14 @@ import {
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
+  type DragCancelEvent,
   PointerSensor,
   type UniqueIdentifier,
   closestCenter,
   useSensor,
   useSensors,
   useDroppable,
+  DragOverlay,
 } from "@dnd-kit/core";
 
 import {
@@ -90,7 +92,7 @@ const style = {
     scaleX: 1, 
     scaleY: 1, 
   }),
-
+  opacity: isDragging ? 0.85 : 1,
   transition,                           
 };
 
@@ -109,13 +111,34 @@ const style = {
         p-3 
         dark:border-gray-700 
         dark:bg-green-500
-        ${isDragging ? 'z-10 opacity-85 ' : ''}
+        ${isDragging ? 'z-10 opacity-85' : ''}
       `}
     >
       <div className="flex items-center gap-3">
         <span className="dark:text-gray-200">{content}</span>
       </div>
     </li>
+  )
+}
+
+function ItemOverlay({children}: { children: React.ReactNode }) {
+  return (
+    <div
+      className="
+        cursor-grab 
+        touch-none 
+        rounded border 
+        bg-white 
+        p-3 
+        dark:border-gray-700 
+        dark:bg-green-500 
+        z-20 
+        opacity-90"
+    >
+      <div className="flex items-center gap-3">
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -137,24 +160,6 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
       title: 'innerItems',
       items: [],      
     }
-    // {
-    //   id: 'outerItems',
-    //   title: 'outerItems',
-    //   items: [
-    //     { id: 'task-1', content: 'item1' },
-    //     { id: 'task-2', content: 'item2' },
-    //     { id: 'task-3', content: 'item3' },
-    //     { id: 'task-4', content: 'item4' },
-    //   ],
-    // },
-    // {
-    //   id: 'innerItems',
-    //   title: 'innerItems',
-    //   items: [
-    //     { id: 'task-6', content: 'item6' },
-    //     { id: 'task-7', content: 'item7' },
-    //   ],
-    // },
   ])
   void setContainers
   
@@ -167,6 +172,11 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
     setActiveId(event.active.id)
   }
   
+  function handleDragCancel(event: DragCancelEvent){
+    void event
+    setActiveId(null)
+  }
+
   function handleDragOver(event: DragOverEvent){
     const {active , over} = event
     if (!over) return
@@ -274,11 +284,19 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
   const sensors = useSensors(
     useSensor(PointerSensor,
       {activationConstraint: {
-        distance: 2 //8px of movement required
+        distance: 1 //8px of movement required
       },
       
     })
   )
+
+  const getActiveItem = () => {
+    for(const container of containers){
+      const item = container.items.find((item) => item.id === activeId)
+      if(item) return item
+    }
+    return null
+  }
 
     return (
     <div className="mx-auto w-full h-full bg-red-400/0">
@@ -286,6 +304,7 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
+        onDragCancel={handleDragCancel}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
@@ -300,6 +319,19 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
           />
         ))}
       </div>
+      
+    <DragOverlay
+      dropAnimation={{
+        duration: 250,
+        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+      }}
+    >
+      {activeId ? (
+        <ItemOverlay>
+          {getActiveItem()?.content}
+        </ItemOverlay>
+      ): null}
+    </DragOverlay>
       </DndContext>
     </div>
   )

@@ -41,18 +41,18 @@ function DroppableContainer({ id, title, items, index}: { id: string; title: str
   return (
     <div
       ref={setNodeRef}
-      className={`relative flex ${index === 0 ? 'h-[80%]' : 'h-[20%]'} flex-col rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 bg-red-800 `}
+      className={`relative flex ${index === 0 ? 'h-[80%]' : 'h-[20%] '} flex-col rounded-md border border-gray-200 bg-gray-900/30 p-3 dark:border-gray-700 overflow-x-auto overflow-y-hidden`}
     >
-      <h3 className="mb-2 font-medium text-gray-700 dark:text-gray-200">
+      {/* <h3 className="mb-2 font-medium text-gray-700 dark:text-gray-200">
         {title}
-      </h3>
+      </h3> */}
       
       <div className="h-full flex-1 bg-green-300/0">
         <SortableContext
           items={items.map((item) => item.id)}
           strategy={horizontalListSortingStrategy}
         >
-          <ul className="relative h-full flex flex-row gap-2 bg-blue-500 m-0 p-0 list-none">
+          <ul className="relative h-full flex flex-row flex-shrink-0 bg-blue-500 m-0 p-0 list-none  overflow-y-hidden">
             {items.map((item) => (
               <SortableItem key={item.id} id={item.id} content={item.content} index={index}/>
             ))}
@@ -84,7 +84,7 @@ function SortableItem({id,content,index}: {id: UniqueIdentifier , content: React
   
   // If index is 1 (innerItems), apply smaller scale
   // const isInnerContainer = index === 1;
-  
+const zoomValue = index === 0 ? 1 : 0.25;
 const style = {
   transform: CSS.Transform.toString({ 
     x: transform?.x ?? 0,
@@ -93,7 +93,8 @@ const style = {
     scaleY: 1, 
   }),
   opacity: isDragging ? 0.85 : 1,
-  transition,                           
+  transition,     
+  zoom: zoomValue,                      
 };
 
   return (
@@ -111,7 +112,9 @@ const style = {
         p-3 
         dark:border-gray-700 
         dark:bg-green-500
-        ${isDragging ? 'z-10 opacity-85' : ''}
+        origin-top-left
+        w-max h-max
+        ${isDragging ? 'z-10 ' : ''}
       `}
     >
       <div className="flex items-center gap-3">
@@ -121,17 +124,18 @@ const style = {
   )
 }
 
-function ItemOverlay({children}: { children: React.ReactNode }) {
+function ItemOverlay({children}: { children: React.ReactNode}) {
+
   return (
     <div
+      style = {{zoom : 0.25 }}
       className="
         cursor-grab 
         touch-none 
         rounded border 
-        bg-white 
         p-3 
         dark:border-gray-700 
-        dark:bg-green-500 
+        dark:bg-red-500 
         z-20 
         opacity-90"
     >
@@ -307,6 +311,7 @@ export default function BasicDragDrop({children}: { children: React.ReactNode } 
         onDragCancel={handleDragCancel}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        
       >
       <div className="flex flex-col gap-4 h-full">
         {containers.map((container,index) => (

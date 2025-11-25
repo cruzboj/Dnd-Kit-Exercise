@@ -137,7 +137,9 @@ function ItemOverlay({children}: { children: React.ReactNode}) {
         dark:border-gray-700 
         dark:bg-red-500 
         z-20 
-        opacity-90"
+        opacity-90
+        w-max h-max
+        "
     >
       <div className="flex items-center gap-3">
         {children}

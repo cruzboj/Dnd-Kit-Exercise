@@ -1,4 +1,4 @@
-import BasicDragDrop from './components/Dnd'
+import BasicDragDrop from './components/Dnd/Dnd'
 import './App.css'
 
 export default function App() {
